@@ -1,34 +1,44 @@
-#!/usr/bin/ruby
-
-require 'optparse'
 require 'term/ansicolor'
-require_relative 'lib/cleaner.rb'
-require_relative 'lib/cache.rb'
+require 'commander/import'
+require_relative 'lib/TwitterFollowing.rb'
+require_relative 'lib/Cache.rb'
 
-options = {}
-OptionParser.new do |opts|
-  opts.banner = "Usage: following.rb [options]"
+program :version, "1.0.0"
+program :description, "Everyone you follow on Twitter"
 
-  opts.on("-l", "--list", "List followers") do |l|
-    options['list'] = l
+command :list do |c|
+  c.syntax = "#{__FILE__} list [options]"
+  c.description = "List the Twitter users you're following (ordered by when you followed users, most recent first)"
+  c.option "--inactive DAYS", Integer, "Show following users that haven't tweeted since at least the specified number of days"
+  c.action do |args, options|
+    lister = twitter_following
+    lister.since = options.inactive
+    lister.output_following
   end
+end
 
-  opts.on("--last [Days]", Integer, "Show followers that haven't tweeted since at least the specified number of days") do |days|
-    options['since'] = days
+command :unfollow do |c|
+  c.syntax = "#{__FILE__} unfollow [options]"
+  c.description = "Unfollow Twitter users who haven't posted in a number of days"
+  c.option "--inactive DAYS", Integer, "Show following users that haven't tweeted since at least the specified number of days"
+  c.action do |args, options|
+    lister = twitter_following
+
+    if !options.inactive
+      $stderr.puts "The --inactive option is required"
+      exit -1
+    end
+
+    lister.since = options.inactive
+    lister.unfollow!
   end
-
-  opts.on_tail("-h", "--help", "Show this message") do
-    puts opts
-    exit
-  end
-end.parse!
-
+end
 
 def load_config
   config = YAML.load(IO.read('config.yml'))
 
   if config.values.include? ''
-    $stderr.puts 'Invalid config.yml. Create an app at <https://apps.twitter.com> and plug in the values.'.red
+    $stderr.puts 'Invalid config.yml. Create an app at <https://apps.twitter.com> and copy in the values.'
     exit -1
   end
 
@@ -37,13 +47,7 @@ def load_config
   config
 end
 
-config = load_config.merge(options)
-cache = FollowerCache.new(config)
-cleaner = Cleaner.new(config['twitter'], cache)
-
-if options['since']
-  cleaner.since = options['since']
-end
-if options['list']
-  cleaner.output_following
+def twitter_following
+  config = load_config
+  TwitterFollowing.new(config['twitter'], Cache.new(config))
 end

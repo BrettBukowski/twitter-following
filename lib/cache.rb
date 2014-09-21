@@ -1,5 +1,7 @@
 
-class FollowerCache
+class Cache
+  attr_accessor :cache_file, :cache_time
+
   def initialize(options = {})
     @cache_file = options['cache_file']
     @cache_time = options['cache_time']
@@ -17,13 +19,13 @@ class FollowerCache
 
   def write_to_cache(to_cache)
     serialized = Marshal::dump(to_cache)
-    IO.write(@cache_file, serialized)
+    IO.write(cache_file, serialized)
     to_cache
   end
 
   def cached
-    if File.exists?(@cache_file) && (Time.now - File.ctime(@cache_file)) / 3600 < @cache_time
-      Marshal::load(IO.read(@cache_file))
+    if File.exists?(cache_file) && (Time.now - File.ctime(cache_file)) / 3600 < cache_time
+      Marshal::load(IO.read(cache_file))
     end
   end
 end

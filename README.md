@@ -6,6 +6,12 @@ Handy if you want to prune who you follow, follow a lot of people, and don't wan
 
 Inspired by [twitter-cleaner](https://github.com/apassant/twitter-cleaner).
 
+### Examples
+
+  ruby following.rb list --inactive 80
+
+![](http://i.imgur.com/niGD5xs.png)
+
 
 ### Prereqs
 
@@ -15,8 +21,8 @@ Ruby and the Bundler gem.
 
 1. Create a Twitter app at <https://apps.twitter.com>.
 2. Go to <https://apps.twitter.com/app/[appid]/keys> and copy out the "API key", "API secret", "Access token", and "Access token secret" values into `config.yml`.
-3. `bundle`
-4. `./following.rb`
+3. `bundle install --without test`
+4. `ruby following.rb`
 
 ### Notes
 
